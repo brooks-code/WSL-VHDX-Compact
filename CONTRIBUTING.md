@@ -8,7 +8,7 @@ The following is a set of guidelines for contributing to this repo. These are mo
 
 ## Table of Contents
 
-- [Contributing to DataSwag](#contributing-to-dataswag)
+- [Contributing details](#contributing-details)
   - [Table of Contents](#table-of-contents)
   - [How Can I Contribute?](#how-can-i-contribute)
     - [1. Fork the repo](#1-fork-the-repo)
@@ -34,7 +34,7 @@ Click the “Fork” button in the top-right corner of this page.
 
 ```bash
 git clone https://github.com/brooks-code/WSL-VHDX-Compact.git
-cd img_utils
+cd WSL-VHDX-Compact
 ```
 
 ### 3. Create a branch
