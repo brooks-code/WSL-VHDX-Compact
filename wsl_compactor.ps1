@@ -34,8 +34,7 @@ $distros = Get-ChildItem $lxssKey |
                Name     = $props.DistributionName
                BasePath = $props.BasePath
              }
-           } |
-           Where-Object { $_.Name }           # filter out anything missing a name
+           }
 
 if ($distros.Count -eq 0) {
   Throw-And-Exit "No WSL distros found in the registry."
@@ -159,4 +158,3 @@ diskpart /s $tempFile | ForEach-Object {
 
 # Clean up
 Remove-Item $tempFile -ErrorAction SilentlyContinue
-Write-Host "`nDone! Successfully compacted:`n  $vhdx" -ForegroundColor Green
