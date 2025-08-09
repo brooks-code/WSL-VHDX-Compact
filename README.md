@@ -1,6 +1,6 @@
 # WSL2 ext4.vhdx compactor
 
-**♫ Garbage - Only Happy When It Rains ♪**
+**♫ Garbage - Only Happy When It Rains (1995) ♪**
 
 ![Banner Image](</img/compactor.png> "A custom tshirt with a mysterious teaser message").<br>*Declutter your WSL - the easy way. (Photograph by Gerald Herbert/AP)*
 
@@ -60,6 +60,8 @@ The script performs the following actions:
 3. Identifies the base path and locates the `ext4.vhdx` file.
 4. Shuts down WSL and uses DISKPART to compact the `ext4.vhdx` file.
 
+A comprehensive tutorial is provided on [fCC News](https://www.freecodecamp.org/news/how-to-free-up-and-automatically-manage-disk-space-for-wsl-on-windows-1011/).
+
 ## Notes
 
 - If multiple distributions are installed, you'll be prompted to select one.
@@ -68,7 +70,7 @@ The script performs the following actions:
 - If there is a lot of compacting ahead, **the script might take a while to execute**.
 
 >[!WARNING]
-> As always when dealing with important data: be sure to always have backups.
+> As always when dealing with important data: make sure to have backups!
 
 ## Compatibility
 
