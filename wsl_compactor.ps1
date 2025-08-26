@@ -11,16 +11,6 @@
 .USAGE Go to the script directory and, as admin, in cmd or powershell run: 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\wsl_compactor.ps1 #>
 
-[CmdletBinding()]
-param()
-
-function Throw-And-Exit {
-    param([string]$Message)
-    Write-Error $Message
-    Exit 1
-}
-
-
 #------------------------------------------------------------
 # Step 1 – Enumerate distros from the registry
 #------------------------------------------------------------
@@ -37,7 +27,7 @@ $distros = Get-ChildItem $lxssKey |
            }
 
 if ($distros.Count -eq 0) {
-  Throw-And-Exit "No WSL distros found in the registry."
+  Throw "No WSL distros found in the registry."
 }
 
 
@@ -77,7 +67,7 @@ Write-Host "`nSelected distro: $distro" -ForegroundColor DarkYellow
 Write-Host "BasePath: $basePath"
 
 if (-not (Test-Path $basePath)) {
-  Throw-And-Exit "BasePath '$basePath' does not exist on disk."
+  Throw "BasePath '$basePath' does not exist on disk."
 }
 
 
@@ -91,10 +81,9 @@ $possible = @(
 $vhdx = $possible | Where-Object { Test-Path $_ } | Select-Object -First 1
 
 if (-not $vhdx) {
-  Throw-And-Exit "No ext4.vhdx found under '$basePath' or 'LocalState'."
+  Throw "No ext4.vhdx found under '$basePath' or 'LocalState'."
 }
 # Confirmation prompt
-
 Write-Host "`nAbout to compact this WSL distro:" -ForegroundColor Magenta
 Write-Host "  Distro   : $distro"
 Write-Host "  BasePath : $basePath"
@@ -118,7 +107,7 @@ if ($answer.ToUpper() -ne 'Y') {
 Write-Host "Shutting down WSL..." -ForegroundColor Cyan
 wsl.exe --shutdown
 if ($LASTEXITCODE -ne 0) {
-  Throw-And-Exit "Failed to shut down WSL. Are you running as Administrator?"
+  Throw "Failed to shut down WSL. Are you running as Administrator?"
 }
 
 # Build and run diskpart script
