@@ -83,3 +83,4 @@ Contributions are welcome! If you have any improvements or bug fixes, feel free 
 ## License
 
 This script is released under the [Unlicense](https://unlicense.org/) license.
+
