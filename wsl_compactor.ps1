@@ -100,6 +100,7 @@ if ($answer.ToUpper() -ne 'Y') {
   exit
 }
 
+$prev_size = (Get-Item $vhdx).Length
 
 #------------------------------------------------------------
 # Step 4 – Shutdown WSL & Compact
@@ -147,3 +148,7 @@ diskpart /s $tempFile | ForEach-Object {
 
 # Clean up
 Remove-Item $tempFile -ErrorAction SilentlyContinue
+
+$current_size = (Get-Item $vhdx).Length
+Write-Host ("Previous VHDX size: {0:N0} bytes ({1:N2} GB)" -f $prev_size, ($prev_size / 1GB)) -ForegroundColor Gray
+Write-Host ("Current VHDX size: {0:N0} bytes ({1:N2} GB)" -f $current_size, ($current_size / 1GB)) -ForegroundColor Gray
