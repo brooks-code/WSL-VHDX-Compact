@@ -57,7 +57,7 @@ Until then you are free to use this script :)
 ## Learning
 
 >[!NOTE]
-> The [initial release](https://github.com/brooks-code/WSL-VHDX-Compact/blob/c5c2e346ab0dd1a8dbc6130f8d372af8022ddd60/wsl_compactor.ps1) is the subject of a tutorial designed as a practical introduction to powershell. It is available on [fCC News](https://www.freecodecamp.org/news/how-to-free-up-and-automatically-manage-disk-space-for-wsl-on-windows-1011/).
+> The [initial release](https://github.com/brooks-code/WSL-VHDX-Compact/blob/c5c2e346ab0dd1a8dbc6130f8d372af8022ddd60/wsl_compactor.ps1) is the subject of a tutorial designed as a practical introduction to PowerShell. It is available on [fCC News](https://www.freecodecamp.org/news/how-to-free-up-and-automatically-manage-disk-space-for-wsl-on-windows-1011/).
 
 ## Benefits
 
@@ -110,7 +110,7 @@ The script performs the following actions:
 4. Identifies the base path and locates the `ext4.vhdx` file.
 5. Runs `fstrim` inside the distro to discard unused blocks.
 6. Shuts down WSL.
-7. Attempts to compact using Hyper‑V `Optimize-VHD -Mode Full`; if Hyper‑V is unavailable or `Optimize‑VHD` fails, falls back to the `DISKPART` method.
+7. Attempts to compact using Hyper‑V `Optimize-VHD -Mode Full`; if Hyper‑V is unavailable or `Optimize‑VHD` fails, falls back to the `diskpart` method.
 8. Reports previous size, current size, and saved disk space.
 
 ## Notes
@@ -138,11 +138,11 @@ This script is compatible with Windows systems that have WSL2 installed. It has 
 
 ### v1.1 (April/May 2026)
 
-- **Added**: Prefer `Optimize-VHD` (Hyper‑V module) with automatic fallback to diskpart if Hyper‑V is unavailable or Optimize‑VHD fails [issue#2](https://github.com/brooks-code/WSL-VHDX-Compact/issues/2).
+- **Added**: prefer `Optimize-VHD` (Hyper‑V module) with automatic fallback to diskpart if Hyper‑V is unavailable or Optimize‑VHD fails [issue#2](https://github.com/brooks-code/WSL-VHDX-Compact/issues/2).
 - **Added**: `-DistroName` parameter for easier automation.
 - **Added**: `fstrim` inside the distro prior to compaction to discard unused blocks [issue#2](https://github.com/brooks-code/WSL-VHDX-Compact/issues/2).
 - **Added**: more explicit admin check (throws early if not elevated).
-- **Added**: Reporting of previous/current sizes and bytes saved. [PR#1](https://github.com/brooks-code/WSL-VHDX-Compact/pull/1).
+- **Added**: reporting of previous/current sizes and bytes saved. [PR#1](https://github.com/brooks-code/WSL-VHDX-Compact/pull/1).
 
 ### v1.0 (August 2025)
 
