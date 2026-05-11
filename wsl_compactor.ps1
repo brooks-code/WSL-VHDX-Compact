@@ -61,7 +61,6 @@ if ($distros.Count -eq 0) {
   Throw-And-Exit "No WSL distros found in the registry."
 }
 
-
 #------------------------------------------------------------
 # Step 2 - Select distro
 #------------------------------------------------------------
@@ -91,7 +90,6 @@ elseif ($distros.Count -gt 1) {
 else {
   $selected = $distros[$distros.Count - 1]
 }
-
 
 $distro = $selected.Name
 
