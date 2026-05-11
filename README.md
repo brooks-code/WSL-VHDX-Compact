@@ -18,6 +18,7 @@ This PowerShell script automates the process of compacting WSL2 `ext4.vhdx` file
   - [Table of contents](#table-of-contents)
   - [Why?](#why)
     - [The big issue](#the-big-issue)
+  - [The Windows .exe](#the-windows-exe)
   - [Learning](#learning)
   - [Benefits](#benefits)
   - [Requirements](#requirements)
@@ -53,6 +54,31 @@ This is a bit problematic, especially when you deal with a lot of data and depen
 > More about this on [superuser](https://superuser.com/questions/1606213/how-do-i-get-back-unused-disk-space-from-ubuntu-on-wsl2#1612289).
 
 Until then you are free to use this script :)
+
+## The Windows .exe
+
+WSL-VHDX-Compact is now also a Windows executable! Check the release section and reclaim disk space without hassle in about just two clicks.
+The binary has been compiled with [PS2Exe](https://github.com/MScholtes/PS2EXE), and yes, since you don't know me (and you will be prompted to run a powershell script with elevated rights) make sure to check what the script does. After installing PS2Exe like this:
+
+```powershell
+Install-Module -Name ps2exe -Scope CurrentUser
+```
+
+You can unpack the `.exe` :
+
+```powershell
+Import-Module ps2exe
+Invoke-PS2EXE -extract .\wsl2compact.exe -OutPath .\extracted
+```
+
+And then inspect the files :)
+
+The only difference with [wsl_compactor.ps1](https://github.com/brooks-code/WSL-VHDX-Compact/blob/main/wsl_compactor.ps1) should be the two lines added at the end (to keep the terminal screen active).
+
+```powershell
+Write-Host "`nPress any key to exit..." -ForegroundColor DarkCyan
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+```
 
 ## Learning
 
@@ -143,6 +169,7 @@ This script is compatible with Windows systems that have WSL2 installed. It has 
 - **Added**: `fstrim` inside the distro prior to compaction to discard unused blocks [issue#2](https://github.com/brooks-code/WSL-VHDX-Compact/issues/2).
 - **Added**: more explicit admin check (throws early if not elevated).
 - **Added**: reporting of previous/current sizes and bytes saved. [PR#1](https://github.com/brooks-code/WSL-VHDX-Compact/pull/1).
+- **Released**: [WSL2Compact v1.0.0](https://github.com/brooks-code/WSL-VHDX-Compact/releases/tag/v1.0.0) Windows executable.
 
 ### v1.0 (August 2025)
 
