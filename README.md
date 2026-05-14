@@ -162,7 +162,7 @@ Get-Command wsl2compact
 And run the script:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Path\to\wsl2compact.ps1" -DistroName Ubuntu
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Path\to\wsl2compact.ps1"
 ```
 
 or optionally, specify a `-DistroName` to run in non-interactive mode:
