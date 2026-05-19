@@ -54,11 +54,12 @@ $distros = Get-ChildItem $lxssKey |
              [PSCustomObject]@{
                Name     = $props.DistributionName
                BasePath = $props.BasePath
+               WSLVer   = $props.Version
              }
            }
 
 if ($distros.Count -eq 0) {
-  Throw-And-Exit "No WSL distros found in the registry."
+  throw "No WSL distros found in the registry."
 }
 
 #------------------------------------------------------------
@@ -74,7 +75,7 @@ if ($DistroName) {
 elseif ($distros.Count -gt 1) {
   Write-Host "Multiple distros detected. Please choose one to compact:`n" -ForegroundColor Cyan
   for ($i = 0; $i -lt $distros.Count; $i++) {
-    Write-Host ("[{0}] {1} ({2}, WSL{3})" -f ($i + 1), $distros[$i].Name, $distros[$i].State, $distros[$i].WSLVer)
+    Write-Host ("[{0}] {1} (WSL{2})" -f ($i + 1), $distros[$i].Name, $distros[$i].WSLVer)
   }
 
   do {
@@ -94,24 +95,10 @@ else {
 $distro = $selected.Name
 
 #------------------------------------------------------------
-# Step 3 - Resolve BasePath from registry
+# Step 3 - Resolve BasePath from selected Distro
 #------------------------------------------------------------
-$lxssKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
-$selectedReg = Get-ChildItem $lxssKey -ErrorAction Stop | ForEach-Object {
-  $props = Get-ItemProperty $_.PSPath
-  if ($props.DistributionName -eq $distro) {
-    [PSCustomObject]@{
-      Name     = $props.DistributionName
-      BasePath = $props.BasePath
-    }
-  }
-} | Select-Object -First 1
+$basePath = $selected.BasePath
 
-if (-not $selectedReg) {
-  throw "Could not find registry entry for distro '$distro'."
-}
-
-$basePath = $selectedReg.BasePath
 Write-Host "`nSelected distro: $distro" -ForegroundColor DarkYellow
 Write-Host "BasePath: $basePath"
 
