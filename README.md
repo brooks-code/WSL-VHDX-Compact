@@ -36,7 +36,7 @@ This PowerShell script automates the process of compacting WSL2 `ext4.vhdx` file
     - [Misc](#misc)
   - [Compatibility](#compatibility)
   - [Changelog](#changelog)
-    - [v1.1.1 (May 2026) - latest](#v111-may-2026-latest) 
+    - [v1.1.1 (May 2026) - latest](#v111-may-2026---latest)
     - [v1.1 (April/May 2026)](#v11-aprilmay-2026)
     - [v1.0 (August 2025)](#v10-august-2025)
   - [Contributing](#contributing)
