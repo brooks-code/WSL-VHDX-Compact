@@ -65,9 +65,12 @@ Until then you are free to use this script :)
 
 ## The Windows .exe
 
-WSL-VHDX-Compact is now also a Windows executable! Check the [release](https://github.com/hyperphantasia/WSL-VHDX-Compact/releases/tag/v1.0.1) section. Reclaiming disk space has never been so easy :)
+WSL-VHDX-Compact is now also a Windows executable! Check the [release](https://github.com/hyperphantasia/WSL-VHDX-Compact/releases/tag/v1.0.1) section.
 
-The binary has been compiled with [PS2Exe](https://github.com/MScholtes/PS2EXE), and yes, since **you don't know me** (and you will be prompted to run a powershell script with elevated rights), be careful, rigorous and check what the *.exe* contains.
+>[!WARNING]
+> Some virus scanners might flag the `.exe` file. This is a false positive and a well documented case on [PS2EXE repository](https://github.com/MScholtes/PS2EXE/issues/153) that comes up [often](https://stackoverflow.com/questions/70393526/how-do-i-compile-a-powershell-script-so-that-it-is-shown-as-safe-by-antivirus). See below on how to check the contents of the `.exe` by yourself, if you still feel unsure about that, feel free to run the `.ps1` script instead.
+
+The binary has been compiled with [PS2Exe](https://github.com/MScholtes/PS2EXE), and yes, wethere the file is flagged as malware or not and since **you don't know me** (and you will be prompted to run a powershell script with elevated rights), be careful, rigorous: check what the *.exe* contains and be sure to understand what the script does.
 
 After installing PS2Exe like this:
 
