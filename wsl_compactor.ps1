@@ -52,9 +52,10 @@ $distros = Get-ChildItem $lxssKey |
            ForEach-Object {
              $props = Get-ItemProperty $_.PSPath
              [PSCustomObject]@{
-               Name     = $props.DistributionName
-               BasePath = $props.BasePath
-               WSLVer   = $props.Version
+               Name        = $props.DistributionName
+               BasePath    = $props.BasePath
+               VhdFileName = $props.VhdFileName
+               WSLVer      = $props.Version
              }
            }
 
@@ -98,25 +99,43 @@ $distro = $selected.Name
 # Step 3 - Resolve BasePath from selected Distro
 #------------------------------------------------------------
 $basePath = $selected.BasePath
+if ($basePath -like '\\?\*') { $basePath = $basePath.Substring(4) }
 
 Write-Host "`nSelected distro: $distro" -ForegroundColor DarkYellow
 Write-Host "BasePath: $basePath"
 
-if (-not (Test-Path $basePath)) {
+if (-not (Test-Path -LiteralPath $basePath)) {
   throw "BasePath '$basePath' does not exist on disk."
 }
 
 #------------------------------------------------------------
-# Step 4 - Locate ext4.vhdx
+# Step 4 - Locate vhdx file
 #------------------------------------------------------------
-$possible = @(
-  Join-Path $basePath 'ext4.vhdx'
-  Join-Path $basePath 'LocalState\ext4.vhdx'
-)
+if ($selected.VhdFileName) {
+  $candidate = Join-Path $basePath $selected.VhdFileName
+  if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+    $vhdx = $candidate
+  }
+}
 
-$vhdx = $possible | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $vhdx) {
-  throw "No ext4.vhdx found under '$basePath' or 'LocalState'."
+  if ((Test-Path -LiteralPath $basePath -PathType Leaf) -and $basePath -match '\.vhdx$') {
+    $vhdx = $basePath
+  }
+  else {
+    $vhdx = @(
+      Join-Path $basePath 'ext4.vhdx'
+      Join-Path $basePath 'LocalState\ext4.vhdx'
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+    if (-not $vhdx) {
+      $vhdx = Get-ChildItem -LiteralPath $basePath -Filter '*.vhdx' -File -ErrorAction SilentlyContinue |
+              Sort-Object Length -Descending | Select-Object -First 1 -ExpandProperty FullName
+    }
+  }
+}
+if (-not $vhdx) {
+  throw "No .vhdx file found at or under '$basePath'."
 }
 
 Write-Host "`nAbout to compact this WSL distro:" -ForegroundColor Magenta
