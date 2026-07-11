@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wsl_compactor.ps1'
+      - 'packaging/**'
+      - '.github/workflows/release.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute version
+        id: version
+        shell: pwsh
+        run: |
+          # Major.Minor is fixed in the script; the patch number is the Actions run number,
+          # so every push to main gets a new, strictly increasing version automatically.
+          $version = "1.0.$($env:GITHUB_RUN_NUMBER)"
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Version for this run: $version"
+
+      - name: Stamp script version
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module PowerShellGet -Force -AllowClobber -Scope CurrentUser -MinimumVersion 2.2.5
+          Update-ScriptFileInfo -Path .\wsl_compactor.ps1 -Version "${{ steps.version.outputs.version }}"
+
+      - name: Publish to PowerShell Gallery
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          Publish-Script -Path .\wsl_compactor.ps1 -NuGetApiKey $env:NUGET_API_KEY -Repository PSGallery
+
+      - name: Build self-extracting .exe (IExpress, not PS2EXE)
+        shell: pwsh
+        run: |
+          .\packaging\build-exe.ps1 -ScriptPath .\wsl_compactor.ps1 -OutputPath .\dist\Compact-WSL2-Distro.exe
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          files: dist/Compact-WSL2-Distro.exe
+          generate_release_notes: true
