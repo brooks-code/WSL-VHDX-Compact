@@ -3,9 +3,10 @@
 .VERSION 1.0.0
 .GUID 7eef563c-8be6-449d-835a-3d3aedb7a63d
 .AUTHOR brooks
+.DESCRIPTION Save disk space on WSL2! PowerShell script that helps compacting the distro's ext4.vhdx and reclaim some hard drive space (using Optimize-VHD and diskpart as fallback). More on : https://github.com/hyperphantasia/WSL-VHDX-Compact
 .COMPANYNAME https://github.com/hyperphantasia/
 .COPYRIGHT (c) 2026 hyperphantasia. All rights reserved.
-.TAGS WSL WindowsSubsystemForLinux VHDX Compact DiskCleanup Hyper-V
+.TAGS WSL WSL2 WindowsSubsystemForLinux VHDX vhd ext4 linux Compact DiskCleanup Hyper-V powershell disk-cleanup Optimize-VHD diskpart fstrim virtualization windows disk hdd space disk-management storage-management 
 .LICENSEURI https://unlicense.org/
 .PROJECTURI https://github.com/hyperphantasia/WSL-VHDX-Compact
 .ICONURI
