@@ -1,13 +1,13 @@
 <#PSScriptInfo
 
 .VERSION 1.0.0
-.GUID 
+.GUID 7eef563c-8be6-449d-835a-3d3aedb7a63d
 .AUTHOR brooks
-.COMPANYNAME
-.COPYRIGHT 
+.COMPANYNAME https://github.com/hyperphantasia/
+.COPYRIGHT (c) 2026 hyperphantasia. All rights reserved.
 .TAGS WSL WindowsSubsystemForLinux VHDX Compact DiskCleanup Hyper-V
-.LICENSEURI
-.PROJECTURI
+.LICENSEURI https://unlicense.org/
+.PROJECTURI https://github.com/hyperphantasia/WSL-VHDX-Compact
 .ICONURI
 .EXTERNALMODULEDEPENDENCIES
 .REQUIREDSCRIPTS
