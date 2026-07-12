@@ -1,3 +1,22 @@
+<#PSScriptInfo
+
+.VERSION 1.0.0
+.GUID 
+.AUTHOR brooks
+.COMPANYNAME
+.COPYRIGHT 
+.TAGS WSL WindowsSubsystemForLinux VHDX Compact DiskCleanup Hyper-V
+.LICENSEURI
+.PROJECTURI
+.ICONURI
+.EXTERNALMODULEDEPENDENCIES
+.REQUIREDSCRIPTS
+.EXTERNALSCRIPTDEPENDENCIES
+.RELEASENOTES
+Initial release.
+
+#>
+
 <#
 .SYNOPSIS
   Compact a WSL2 ext4.vhdx the automated way.
