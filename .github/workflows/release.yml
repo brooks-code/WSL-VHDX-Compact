@@ -1,4 +1,3 @@
-
 name: Release
 on:
   push:
@@ -7,11 +6,14 @@ on:
       - 'wsl_compactor.ps1'
       - 'packaging/**'
       - '.github/workflows/release.yml'
+
 permissions:
   contents: write
+
 jobs:
   release:
     runs-on: windows-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,12 +26,13 @@ jobs:
 
           $galleryVersion = $null
           try {
-            $resp = Invoke-RestMethod -UseBasicParsing `
-              -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='wsl2compact'"
-            $versions = $resp | ForEach-Object { [version]$_.properties.Version }
-            if ($versions) { $galleryVersion = $versions | Sort-Object -Descending | Select-Object -First 1 }
+            $resp = Invoke-RestMethod -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='wsl2compact'"
+            $versions = @($resp | ForEach-Object { [version]$_.properties.Version })
+            if ($versions.Count -gt 0) {
+              $galleryVersion = $versions | Sort-Object -Descending | Select-Object -First 1
+            }
           } catch {
-            Write-Warning "Could not query PowerShell Gallery for the current version: $_"
+            Write-Warning "Could not query PowerShell Gallery: $_"
           }
 
           if ($galleryVersion -and $galleryVersion -ge $runNumberVersion) {
@@ -39,61 +42,53 @@ jobs:
           }
 
           $version = "1.0.$patch"
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "Gallery latest: $galleryVersion | run-number based: $runNumberVersion | using: $version"
 
-      - name: Install PowerShellGet (isolated, avoids in-use module lock)
+      - name: Install PowerShellGet (isolated)
         shell: pwsh
         run: |
           $moduleDir = "$env:RUNNER_TEMP\psmodules"
           New-Item -ItemType Directory -Path $moduleDir -Force | Out-Null
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Save-Module -Name PowerShellGet -Path $moduleDir -MinimumVersion 2.2.5 -Repository PSGallery -Force
-          # Prepend so subsequent steps (fresh pwsh processes) resolve this
-          # version FIRST, instead of the inbox copy that's locked in-use.
           "PSModulePath=$moduleDir;$env:PSModulePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
-      - name: Verify PowerShellGet version in use
+      - name: Verify PowerShellGet version
         shell: pwsh
         run: |
           Import-Module PowerShellGet -MinimumVersion 2.2.5 -Force
           Get-Module PowerShellGet | Select-Object Name, Version, Path
 
-      - name: Normalize PSScriptInfo header
+      - name: Stamp script version safely
         shell: pwsh
         run: |
-                $path = ".\wsl_compactor.ps1"
-                $lines = Get-Content -Path $path
-      
-                # PowerShellGet 2.2.5's parser breaks when an optional PSScriptInfo field
-                # is present but has NO value at all, immediately followed by the next
-                # .FIELD line - it loses track of the whole block and reports every
-                # required property as missing. These are optional; just drop them,
-                # matching the known-good manually published version.
-                $emptyOptionalFields = '^\.(ICONURI|EXTERNALMODULEDEPENDENCIES|REQUIREDSCRIPTS|EXTERNALSCRIPTDEPENDENCIES)\s*$'
-                $lines = $lines | Where-Object { $_ -notmatch $emptyOptionalFields }
-      
-                $content = ($lines -join "`n") + "`n"
-                $content = $content -replace "`r`n", "`n" -replace "`n", "`r`n"
-      
-                $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-                [System.IO.File]::WriteAllText((Resolve-Path $path), $content, $utf8NoBom)
-      
+          $path = ".\wsl_compactor.ps1"
+          $version = "${{ steps.version.outputs.version }}"
+
+          $text = Get-Content $path -Raw
+
+          if ($text -notmatch '(?s)<#PSScriptInfo.*?#>') {
+            throw "No PSScriptInfo block found."
+          }
+
+          $text = [regex]::Replace(
+            $text,
+            '(?m)^\.VERSION\s+.*$',
+            ".VERSION $version",
+            1
+          )
+
+          [System.IO.File]::WriteAllText((Resolve-Path $path), $text, (New-Object System.Text.UTF8Encoding($false)))
+
       - name: Verify PSScriptInfo parses
         shell: pwsh
         run: |
-                Test-ScriptFileInfo -Path .\wsl_compactor.ps1 | Format-List
+          Test-ScriptFileInfo -Path .\wsl_compactor.ps1 | Format-List
 
-      - name: Stamp script version
+      - name: Copy publish script
         shell: pwsh
         run: |
-          Update-ScriptFileInfo -Path .\wsl_compactor.ps1 -Version "${{ steps.version.outputs.version }}"
-
-      - name: Prepare Gallery publish copy
-        shell: pwsh
-        run: |
-          # Gallery package name/identity comes from the filename ("wsl2compact"),
-          # not "wsl_compactor": copy so we publish under the name the API key owns.
           Copy-Item .\wsl_compactor.ps1 .\wsl2compact.ps1 -Force
 
       - name: Publish to PowerShell Gallery
@@ -103,7 +98,7 @@ jobs:
         run: |
           Publish-Script -Path .\wsl2compact.ps1 -NuGetApiKey $env:NUGET_API_KEY -Repository PSGallery
 
-      - name: Build self-extracting .exe (IExpress, not PS2EXE)
+      - name: Build self-extracting .exe
         shell: pwsh
         run: |
           .\packaging\build-exe.ps1 -ScriptPath .\wsl_compactor.ps1 -OutputPath .\dist\Compact-WSL2-Distro.exe
