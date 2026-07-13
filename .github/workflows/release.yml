@@ -1,4 +1,4 @@
-name: Release
+name: Release (PowerShell Gallery)
 
 on:
   push:
@@ -38,9 +38,14 @@ jobs:
         run: |
           Test-ScriptFileInfo -Path .\wsl_compactor.ps1 | Format-List
 
+      - name: Copy publish script       
+        shell: pwsh        
+        run: |          
+         Copy-Item .\wsl_compactor.ps1 .\wsl2compact.ps1 -Force
+
       - name: Publish to PowerShell Gallery
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
         run: |
-          Publish-Script -Path .\wsl_compactor.ps1 -NuGetApiKey $env:NUGET_API_KEY -Repository PSGallery
+          Publish-Script -Path .\wsl2compact.ps1 -NuGetApiKey $env:NUGET_API_KEY -Repository PSGallery
