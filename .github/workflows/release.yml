@@ -1,5 +1,4 @@
 name: Release
-
 on:
   push:
     branches: [main]
@@ -7,10 +6,8 @@ on:
       - 'wsl_compactor.ps1'
       - 'packaging/**'
       - '.github/workflows/release.yml'
-
 permissions:
   contents: write
-
 jobs:
   release:
     runs-on: windows-latest
@@ -22,25 +19,57 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          # Major.Minor is fixed in the script; the patch number is the Actions run number,
-          # so every push to main gets a new, strictly increasing version automatically.
-          $version = "1.0.$($env:GITHUB_RUN_NUMBER)"
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          Write-Host "Version for this run: $version"
+          # Major.Minor is fixed; patch is normally the run number, but we bump
+          # past whatever is already live on the Gallery to avoid collisions
+          # with manually-pushed versions.
+          $runNumberVersion = [version]"1.0.$($env:GITHUB_RUN_NUMBER)"
 
-      - name: Stamp script version
+          $galleryVersion = $null
+          try {
+            $resp = Invoke-RestMethod -UseBasicParsing `
+              -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='wsl2compact'"
+            $versions = $resp | ForEach-Object { [version]$_.properties.Version }
+            if ($versions) { $galleryVersion = $versions | Sort-Object -Descending | Select-Object -First 1 }
+          } catch {
+            Write-Warning "Could not query PowerShell Gallery for the current version: $_"
+          }
+
+          if ($galleryVersion -and $galleryVersion -ge $runNumberVersion) {
+            $patch = $galleryVersion.Build + 1
+          } else {
+            $patch = $runNumberVersion.Build
+          }
+
+          $version = "1.0.$patch"
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Gallery latest: $galleryVersion | run-number based: $runNumberVersion | using: $version"
+
+      - name: Install PowerShellGet
         shell: pwsh
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module PowerShellGet -Force -AllowClobber -Scope CurrentUser -MinimumVersion 2.2.5
+
+      - name: Stamp script version
+        shell: pwsh
+        run: |
+          # Fresh pwsh process -> picks up the PowerShellGet version we just installed,
+          # instead of the one that was already loaded in the previous step.
           Update-ScriptFileInfo -Path .\wsl_compactor.ps1 -Version "${{ steps.version.outputs.version }}"
+
+      - name: Prepare Gallery publish copy
+        shell: pwsh
+        run: |
+          # PSGallery ties the package name to the filename, and the API key
+          # is scoped to the existing "wsl2compact" package - not "wsl_compactor".
+          Copy-Item .\wsl_compactor.ps1 .\wsl2compact.ps1 -Force
 
       - name: Publish to PowerShell Gallery
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
         run: |
-          Publish-Script -Path .\wsl_compactor.ps1 -NuGetApiKey $env:NUGET_API_KEY -Repository PSGallery
+          Publish-Script -Path .\wsl2compact.ps1 -NuGetApiKey $env:NUGET_API_KEY -Repository PSGallery
 
       - name: Build self-extracting .exe (IExpress, not PS2EXE)
         shell: pwsh
