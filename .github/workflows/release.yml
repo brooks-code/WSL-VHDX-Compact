@@ -19,9 +19,6 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          # Major.Minor is fixed; patch is normally the run number, but we bump
-          # past whatever is already live on the Gallery to avoid collisions
-          # with manually-pushed versions.
           $runNumberVersion = [version]"1.0.$($env:GITHUB_RUN_NUMBER)"
 
           $galleryVersion = $null
@@ -44,24 +41,33 @@ jobs:
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "Gallery latest: $galleryVersion | run-number based: $runNumberVersion | using: $version"
 
-      - name: Install PowerShellGet
+      - name: Install PowerShellGet (isolated, avoids in-use module lock)
         shell: pwsh
         run: |
+          $moduleDir = "$env:RUNNER_TEMP\psmodules"
+          New-Item -ItemType Directory -Path $moduleDir -Force | Out-Null
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module PowerShellGet -Force -AllowClobber -Scope CurrentUser -MinimumVersion 2.2.5
+          Save-Module -Name PowerShellGet -Path $moduleDir -MinimumVersion 2.2.5 -Repository PSGallery -Force
+          # Prepend so subsequent steps (fresh pwsh processes) resolve this
+          # version FIRST, instead of the inbox copy that's locked in-use.
+          "PSModulePath=$moduleDir;$env:PSModulePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Verify PowerShellGet version in use
+        shell: pwsh
+        run: |
+          Import-Module PowerShellGet -MinimumVersion 2.2.5 -Force
+          Get-Module PowerShellGet | Select-Object Name, Version, Path
 
       - name: Stamp script version
         shell: pwsh
         run: |
-          # Fresh pwsh process -> picks up the PowerShellGet version we just installed,
-          # instead of the one that was already loaded in the previous step.
           Update-ScriptFileInfo -Path .\wsl_compactor.ps1 -Version "${{ steps.version.outputs.version }}"
 
       - name: Prepare Gallery publish copy
         shell: pwsh
         run: |
-          # PSGallery ties the package name to the filename, and the API key
-          # is scoped to the existing "wsl2compact" package - not "wsl_compactor".
+          # Gallery package name/identity comes from the filename ("wsl2compact"),
+          # not "wsl_compactor" — copy so we publish under the name the API key owns.
           Copy-Item .\wsl_compactor.ps1 .\wsl2compact.ps1 -Force
 
       - name: Publish to PowerShell Gallery
