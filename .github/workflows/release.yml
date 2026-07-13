@@ -59,17 +59,30 @@ jobs:
           Import-Module PowerShellGet -MinimumVersion 2.2.5 -Force
           Get-Module PowerShellGet | Select-Object Name, Version, Path
 
-      - name: Normalize script line endings/encoding
+      - name: Normalize PSScriptInfo header
         shell: pwsh
         run: |
                 $path = ".\wsl_compactor.ps1"
-                $content = Get-Content -Path $path -Raw
-                # Collapse to LF then force CRLF everywhere, and write back with no BOM -
-                # PowerShellGet's PSScriptInfo parser requires CRLF and chokes silently otherwise.
-                $content = $content -replace "`r`n", "`n"
-                $content = $content -replace "`n", "`r`n"
+                $lines = Get-Content -Path $path
+      
+                # PowerShellGet 2.2.5's parser breaks when an optional PSScriptInfo field
+                # is present but has NO value at all, immediately followed by the next
+                # .FIELD line - it loses track of the whole block and reports every
+                # required property as missing. These are optional; just drop them,
+                # matching the known-good manually published version.
+                $emptyOptionalFields = '^\.(ICONURI|EXTERNALMODULEDEPENDENCIES|REQUIREDSCRIPTS|EXTERNALSCRIPTDEPENDENCIES)\s*$'
+                $lines = $lines | Where-Object { $_ -notmatch $emptyOptionalFields }
+      
+                $content = ($lines -join "`n") + "`n"
+                $content = $content -replace "`r`n", "`n" -replace "`n", "`r`n"
+      
                 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
                 [System.IO.File]::WriteAllText((Resolve-Path $path), $content, $utf8NoBom)
+      
+      - name: Verify PSScriptInfo parses
+        shell: pwsh
+        run: |
+                Test-ScriptFileInfo -Path .\wsl_compactor.ps1 | Format-List
 
       - name: Stamp script version
         shell: pwsh
