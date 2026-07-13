@@ -24,9 +24,6 @@ Initial CI/CD release.
 .SYNOPSIS
   Compact a WSL2 ext4.vhdx the automated way.
 
-.AUTHOR
-  41°41′N 70°12′W
-
 .DESCRIPTION
   1. Enumerates installed WSL2 distros via registry.
   2. Distro(s) selection.
