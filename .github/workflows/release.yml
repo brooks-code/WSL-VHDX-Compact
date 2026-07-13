@@ -1,10 +1,10 @@
 name: Release
+
 on:
   push:
     branches: [main]
     paths:
       - 'wsl_compactor.ps1'
-      - 'packaging/**'
       - '.github/workflows/release.yml'
 
 permissions:
@@ -15,98 +15,32 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Compute version
         id: version
         shell: pwsh
         run: |
-          $runNumberVersion = [version]"1.0.$($env:GITHUB_RUN_NUMBER)"
-
-          $galleryVersion = $null
-          try {
-            $resp = Invoke-RestMethod -Uri "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='wsl2compact'"
-            $versions = @($resp | ForEach-Object { [version]$_.properties.Version })
-            if ($versions.Count -gt 0) {
-              $galleryVersion = $versions | Sort-Object -Descending | Select-Object -First 1
-            }
-          } catch {
-            Write-Warning "Could not query PowerShell Gallery: $_"
-          }
-
-          if ($galleryVersion -and $galleryVersion -ge $runNumberVersion) {
-            $patch = $galleryVersion.Build + 1
-          } else {
-            $patch = $runNumberVersion.Build
-          }
-
-          $version = "1.0.$patch"
+          $version = "1.0.$($env:GITHUB_RUN_NUMBER)"
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          Write-Host "Gallery latest: $galleryVersion | run-number based: $runNumberVersion | using: $version"
 
-      - name: Install PowerShellGet (isolated)
-        shell: pwsh
-        run: |
-          $moduleDir = "$env:RUNNER_TEMP\psmodules"
-          New-Item -ItemType Directory -Path $moduleDir -Force | Out-Null
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Save-Module -Name PowerShellGet -Path $moduleDir -MinimumVersion 2.2.5 -Repository PSGallery -Force
-          "PSModulePath=$moduleDir;$env:PSModulePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-
-      - name: Verify PowerShellGet version
-        shell: pwsh
-        run: |
-          Import-Module PowerShellGet -MinimumVersion 2.2.5 -Force
-          Get-Module PowerShellGet | Select-Object Name, Version, Path
-
-      - name: Stamp script version safely
+      - name: Stamp script version
         shell: pwsh
         run: |
           $path = ".\wsl_compactor.ps1"
           $version = "${{ steps.version.outputs.version }}"
-
           $text = Get-Content $path -Raw
-
-          if ($text -notmatch '(?s)<#PSScriptInfo.*?#>') {
-            throw "No PSScriptInfo block found."
-          }
-
-          $text = [regex]::Replace(
-            $text,
-            '(?m)^\.VERSION\s+.*$',
-            ".VERSION $version",
-            1
-          )
-
+          $text = [regex]::Replace($text, '(?m)^\.VERSION\s+.*$', ".VERSION $version", 1)
           [System.IO.File]::WriteAllText((Resolve-Path $path), $text, (New-Object System.Text.UTF8Encoding($false)))
 
-      - name: Verify PSScriptInfo parses
+      - name: Validate script metadata
         shell: pwsh
         run: |
           Test-ScriptFileInfo -Path .\wsl_compactor.ps1 | Format-List
-
-      - name: Copy publish script
-        shell: pwsh
-        run: |
-          Copy-Item .\wsl_compactor.ps1 .\wsl2compact.ps1 -Force
 
       - name: Publish to PowerShell Gallery
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
         run: |
-          Publish-Script -Path .\wsl2compact.ps1 -NuGetApiKey $env:NUGET_API_KEY -Repository PSGallery
-
-      - name: Build self-extracting .exe
-        shell: pwsh
-        run: |
-          .\packaging\build-exe.ps1 -ScriptPath .\wsl_compactor.ps1 -OutputPath .\dist\Compact-WSL2-Distro.exe
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
-          files: dist/Compact-WSL2-Distro.exe
-          generate_release_notes: true
+          Publish-Script -Path .\wsl_compactor.ps1 -NuGetApiKey $env:NUGET_API_KEY -Repository PSGallery
