@@ -99,7 +99,7 @@ This confirms the `.exe` was built by this repo's public CI from the exact commi
 
 This project is not yet code-signed. I've applied for a free certificate. This section will be updated once signing is in place.
 
->[!INFO]
+>[!NOTE]
 > `wsl2compact.exe` is built with [PS2EXE](https://github.com/MScholtes/PS2EXE) from the `.ps1` script in this repo. Nothing more.
 > It's a false positive: a small number of antivirus engines occasionally flag freshly-built, unsigned Windows executables as suspicious based on heuristics rather than actual content. This is a [well-documented](https://github.com/MScholtes/PS2EXE/issues/153) **false-positive** [pattern](https://stackoverflow.com/questions/70393526/how-do-i-compile-a-powershell-script-so-that-it-is-shown-as-safe-by-antivirus) for small open-source tools that is not unique to this project.
 > Since you will be prompted to run a powershell script with elevated rights, be rigorous: read below how to check the contents of the `.exe` by yourself. If you'd rather avoid it entirely, use the PowerShell Gallery install method above, or read `wsl_compactor.ps1` directly: it's plain, unobfuscated PowerShell.
