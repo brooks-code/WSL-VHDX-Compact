@@ -1,5 +1,7 @@
 # WSL2 ext4.vhdx compactor
 
+[![Release (PowerShell Gallery + GitHub Release)](https://github.com/hyperphantasia/WSL-VHDX-Compact/actions/workflows/release.yml/badge.svg)](https://github.com/hyperphantasia/WSL-VHDX-Compact/actions/workflows/release.yml)
+
 **♫ Garbage - Only Happy When It Rains (1995) ♪**
 
 ![Banner Image](<img/compactor.png> "A custom tshirt with a mysterious teaser message").<br>*Declutter your WSL - the easy way. (Photograph by Gerald Herbert/AP)*
@@ -90,10 +92,10 @@ Get-FileHash .\wsl2compact.exe -Algorithm SHA256
 **Verify build provenance** (requires the [GitHub CLI](https://cli.github.com/)):
 
 ```powershell
-gh attestation verify .\wsl2compact.exe -R <you>/<repo>
+gh attestation verify .\wsl2compact.exe -R hyperphantasia/WSL-VHDX-Compact
 ```
 
-This confirms the `.exe` was built by this repo's public CI from the exact commit tagged in the release and not modified or built anywhere else.
+This command verifies and confirms that your `wsl2compact.exe` was built by this GitHub Actions workflow from the exact commit tagged in the release and not modified or built anywhere else.
 
 ### Code signing
 
