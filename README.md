@@ -2,7 +2,7 @@
 
 **♫ Garbage - Only Happy When It Rains (1995) ♪**
 
-![Banner Image](</img/compactor.png> "A custom tshirt with a mysterious teaser message").<br>*Declutter your WSL - the easy way. (Photograph by Gerald Herbert/AP)*
+![Banner Image](<img/compactor.png> "A custom tshirt with a mysterious teaser message").<br>*Declutter your WSL - the easy way. (Photograph by Gerald Herbert/AP)*
 
 ## Description
 
@@ -24,7 +24,10 @@ This PowerShell script automates the process of compacting WSL2 `ext4.vhdx` file
   - [Table of contents](#table-of-contents)
   - [Why?](#why)
     - [The big issue](#the-big-issue)
+  - [Screenshot](#screenshot)
   - [The Windows .exe](#the-windows-exe)
+    - [Verifying your download](#verifying-your-download)
+    - [Code signing](#code-signing)
   - [Benefits](#benefits)
   - [Requirements](#requirements)
   - [Usage](#usage)
@@ -32,12 +35,13 @@ This PowerShell script automates the process of compacting WSL2 `ext4.vhdx` file
     - [PowerShell gallery](#powershell-gallery)
   - [Algorithm](#algorithm)
   - [Notes](#notes)
-    - [Exit codes \& errors](#exit-codes--errors)
+    - [Exit codes & errors](#exit-codes--errors)
     - [Misc](#misc)
   - [Compatibility](#compatibility)
   - [Changelog](#changelog)
-    - [v1.1.1 (May 2026) - latest](#v111-may-2026---latest)
-    - [v1.1 (April/May 2026)](#v11-aprilmay-2026)
+    - [v1.1.2 (July 2026) - Latest](#v112-july-2026---latest)
+    - [v1.1.1 (May 2026)](#v111-may-2026)
+    - [v1.1 (April & May 2026)](#v11--april--may-2026)
     - [v1.0 (August 2025)](#v10-august-2025)
   - [Contributing](#contributing)
   - [License](#license)
@@ -63,14 +67,42 @@ This is a bit problematic, especially when you deal with a lot of data and depen
 
 Until then you are free to use this script :)
 
+## Screenshot
+
+![Screenshot demo image](<img/wsl2-compact-disk-space-screenshot.gif> "Demo of WSL2 Compact - reclaim and save disk space on your WSL2 Linux distros")
+
 ## The Windows .exe
 
 WSL-VHDX-Compact is now also a Windows executable! Check the [release](https://github.com/hyperphantasia/WSL-VHDX-Compact/releases/tag/v1.0.1) section.
 
->[!TIP]
-> Some virus scanners might flag the `.exe` file. This is a false positive and a well documented issue on [PS2EXE repository](https://github.com/MScholtes/PS2EXE/issues/153) that comes up [often](https://stackoverflow.com/questions/70393526/how-do-i-compile-a-powershell-script-so-that-it-is-shown-as-safe-by-antivirus). See below on how to check the contents of the `.exe` by yourself, if you still feel unsure about that, then, you're free to run the `.ps1` script instead.
+### Verifying your download
 
-The binary has been compiled with [PS2Exe](https://github.com/MScholtes/PS2EXE), and yes, wether the file is flagged as malware or not and since you will be prompted to run a powershell script with elevated rights, be rigorous: check what the `*.exe*` contains and be sure to understand what the script does.
+Every release includes a `checksums.txt` and is cryptographically attested by GitHub Actions, so you can confirm a binary actually came from this repo's build pipeline, unmodified.
+
+**Check the SHA256 checksum:**
+
+Open a terminal from the location of the `.exe` and compare the content of `checksums.txt` with the output of this command:
+
+```powershell
+Get-FileHash .\wsl2compact.exe -Algorithm SHA256
+```
+
+**Verify build provenance** (requires the [GitHub CLI](https://cli.github.com/)):
+
+```powershell
+gh attestation verify .\wsl2compact.exe -R <you>/<repo>
+```
+
+This confirms the `.exe` was built by this repo's public CI from the exact commit tagged in the release and not modified or built anywhere else.
+
+### Code signing
+
+This project is not yet code-signed. I've applied for a free certificate. This section will be updated once signing is in place.
+
+>[!INFO]
+> `wsl2compact.exe` is built with [PS2EXE](https://github.com/MScholtes/PS2EXE) from the `.ps1` script in this repo. Nothing more.
+> It's a false positive: a small number of antivirus engines occasionally flag freshly-built, unsigned Windows executables as suspicious based on heuristics rather than actual content. This is a [well-documented](https://github.com/MScholtes/PS2EXE/issues/153) **false-positive** [pattern](https://stackoverflow.com/questions/70393526/how-do-i-compile-a-powershell-script-so-that-it-is-shown-as-safe-by-antivirus) for small open-source tools that is not unique to this project.
+> Since you will be prompted to run a powershell script with elevated rights, be rigorous: read below how to check the contents of the `.exe` by yourself. If you'd rather avoid it entirely, use the PowerShell Gallery install method above, or read `wsl_compactor.ps1` directly: it's plain, unobfuscated PowerShell.
 
 After installing PS2Exe like this:
 
@@ -87,7 +119,7 @@ Invoke-PS2EXE -extract .\wsl2compact.exe -OutPath .\extracted
 
 And then inspect its content :)
 
-The only difference with [wsl_compactor.ps1](https://github.com/hyperphantasia/WSL-VHDX-Compact/blob/main/wsl_compactor.ps1) script should be the two lines added at the end (to keep the terminal screen active and exit on user input).
+The only difference with [wsl_compactor.ps1](https://github.com/hyperphantasia/WSL-VHDX-Compact/blob/main/wsl_compactor.ps1) script should be the two lines added at the end by the [`release.yml`](https://github.com/hyperphantasia/WSL-VHDX-Compact/blob/main/.github/workflows/release.yml) file (this maintains the terminal screen active and exit only on user input).
 
 ```powershell
 Write-Host "`nPress any key to exit..." -ForegroundColor DarkCyan
@@ -129,7 +161,7 @@ Non-interactive mode:
 wsl.exe --list
 ```
 
-When `-DistroName` is supplied the script runs without confirmation prompt.
+When `-DistroName` or `-all` are supplied, the script runs without confirmation prompt.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\wsl_compactor.ps1 -DistroName Ubuntu
@@ -137,12 +169,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\wsl_compactor.ps1 -Dis
 
 ### The executable
 
-Easy! Just click (you will be prompted for an Admin elevation). See the [section above](https://github.com/hyperphantasia/WSL-VHDX-Compact#the-windows-exe) and the [release](https://github.com/hyperphantasia/WSL-VHDX-Compact/releases/tag/v1.0.1) section. 
+Easy! Just click (you will be prompted for an Admin elevation). See the [section above](https://github.com/hyperphantasia/WSL-VHDX-Compact#the-windows-exe) and the [release](https://github.com/hyperphantasia/WSL-VHDX-Compact/releases/tag/v1.0.1) section.
 
 ### PowerShell gallery
 
-The script is also available in the [PowerShell gallery](https://www.powershellgallery.com/packages/wsl2compact/1.0.5). This can simplify automation tasks.
-It is advised to use at least PowerShell 5.1 In an elevated PowerShell terminal (run as Administrator). 
+The script is also available in the [PowerShell gallery](https://www.powershellgallery.com/packages/wsl2compact). This can simplify automation tasks.
+It is advised to use at least PowerShell 5.1 In an elevated PowerShell terminal (run as Administrator).
 
 Make sure `PowerShellGet` and and `PackageManagement` are available on the system:
 
@@ -174,7 +206,7 @@ Run the script:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $((Get-Command wsl2compact).Source)
 ```
 
-or optionally, specify a `-DistroName` to run in non-interactive mode:
+or optionally, specify a `-DistroName` or `-all` to run in non-interactive mode:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $((Get-Command wsl2compact).Source)
@@ -187,7 +219,7 @@ The script performs the following actions:
 
 1. Verifies Administrator privileges.
 2. Enumerates installed WSL2 distributions (from the registry).
-3. Selects a distribution (via `-DistroName`, interactive menu if multiple, or the single installed distro).
+3. Selects a distribution (via `-DistroName`, interactive menu if multiple, or all distros via `-all`, or the single installed distro).
 4. Identifies the base path and locates the `ext4.vhdx` file.
 5. Runs `fstrim` inside the distro to discard unused blocks.
 6. Shuts down WSL.
@@ -217,9 +249,14 @@ This script is compatible with Windows systems that have WSL2 installed. It has 
 
 ## Changelog
 
-### v1.1.2 (June 2026 - Coming soon
+### v1.1.2 (July 2026) - Latest
 
-### v1.1.1 (May 2026) - Latest
+- **Added**: implemented CI/CD pipeline powered by github actions. Each push on the main branch:
+  - Pushes the `.ps1` script on [PowerShell Gallery](https://www.powershellgallery.com/packages/wsl2compact/)
+  - Packages a Windows executable with [PS2EXE](https://github.com/MScholtes/PS2EXE) and pushes the `.exe` as a new github [release](https://github.com/hyperphantasia/WSL-VHDX-Compact/releases).
+- **Added**: implemented *a one choice option* (All) to compact all available distros sequentially.
+
+### v1.1.1 (May 2026)
 
 - **Bugfixes**: fixed distro enumeration listing and early exit error. [PR#4](https://github.com/hyperphantasia/WSL-VHDX-Compact/pull/4) by @AlexanderDoerr
 - **Updated**: [WSL2Compact v1.0.1](https://github.com/hyperphantasia/WSL-VHDX-Compact/releases/tag/v1.0.1) Windows executable.
