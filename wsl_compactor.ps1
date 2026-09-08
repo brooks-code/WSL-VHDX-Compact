@@ -297,6 +297,9 @@ exit
       }
       $optimized = $true
     }
+    catch {
+      Write-Warning $_.Exception.Message
+    }
     finally {
       Remove-Item $tempFile -ErrorAction SilentlyContinue
     }
@@ -338,7 +341,7 @@ if ($jobs.Count -gt 1) {
 }
 
 if ($jobs | Where-Object { -not $_.Optimized }) {
-  Write-Warning "`nOne or more distros did not compact successfully. See warnings above."
+  throw "One or more distros did not compact successfully. See warnings above."
 }
 else {
   Write-Host "`nDone." -ForegroundColor Green
